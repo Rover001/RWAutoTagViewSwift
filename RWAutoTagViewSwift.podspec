@@ -11,7 +11,7 @@ Pod::Spec.new do |spec|
   spec.source       = { :git => "https://github.com/Rover001/RWAutoTagView.git", :tag => "#{spec.version}" }
   spec.requires_arc = true
   spec.swift_version = '5.0'
-  spec.source_files = 'RWAutoTagView/*{swift}'
+  spec.source_files = 'RWAutoTagView/*.{swift}'
   spec.resource     = 'RWAutoTagView/RWAutoTag.bundle'
   spec.frameworks = 'UIKit'
   spec.social_media_url = 'https://cocoapods.org/pods/RWAutoTagView'
