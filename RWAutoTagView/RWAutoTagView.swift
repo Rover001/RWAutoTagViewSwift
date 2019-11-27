@@ -261,9 +261,9 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     
     typealias clickBlock = (_ autoTagView:RWAutoTagView,_ index:NSInteger) ->Void
     
-    public var autoTagButtonClickBlock:clickBlock!
+    var autoTagButtonClickBlock:clickBlock!
 
-    required init?(coder: NSCoder) {
+    required public init? (coder: NSCoder) {
         super.init(coder: coder)
         initAttribute()
     }

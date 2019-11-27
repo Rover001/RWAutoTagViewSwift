@@ -42,7 +42,7 @@ public enum RWAutoTagButtonImageStyle:NSInteger {
 public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     
     private var __autoTagButtonStyle:RWAutoTagButtonStyle = .Text
-    var autoTagButtonStyle: RWAutoTagButtonStyle! {
+    open var autoTagButtonStyle: RWAutoTagButtonStyle! {
         get {return __autoTagButtonStyle}
         set {
             if __autoTagButtonStyle != newValue {
@@ -61,7 +61,7 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     }
     
     private var __imageStyle:RWAutoTagButtonImageStyle = .None
-    var imageStyle: RWAutoTagButtonImageStyle! {
+    open var imageStyle: RWAutoTagButtonImageStyle! {
         get {return __imageStyle}
         set {
             if __imageStyle != newValue {
@@ -76,7 +76,7 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     }
     
     private var __safeAreaLayoutMaxWidth:CGFloat = UIScreen.main.bounds.width
-    var safeAreaLayoutMaxWidth: CGFloat! {
+    open var safeAreaLayoutMaxWidth: CGFloat! {
         get {return __safeAreaLayoutMaxWidth}
         set {
             if (__safeAreaLayoutMaxWidth != newValue) {
@@ -87,7 +87,7 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     }
     
     private var __lineitemSpacing:CGFloat = CGFloat.zero
-    var lineitemSpacing:CGFloat! {
+    open var lineitemSpacing:CGFloat! {
         get {return __lineitemSpacing}
         set {
             if (__lineitemSpacing != newValue) {
@@ -98,7 +98,7 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     }
     
     private var __isDynamicFixed:Bool = false
-    var isDynamicFixed: Bool! {
+    public var isDynamicFixed: Bool! {
         get {return __isDynamicFixed}
         set {
             if  __isDynamicFixed != newValue {
@@ -108,7 +108,7 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     }
     
     private var __dynamicFixedSize:CGSize = CGSize.zero
-    var dynamicFixedSize: CGSize! {
+    open var dynamicFixedSize: CGSize! {
         get {return __dynamicFixedSize}
         set {
             if  __dynamicFixedSize != newValue {
