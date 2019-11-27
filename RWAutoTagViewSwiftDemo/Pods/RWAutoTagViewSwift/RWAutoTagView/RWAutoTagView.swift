@@ -10,7 +10,7 @@ import UIKit
 
 //@discardableResult
 /// 协议一： 代理对象  数据源
-@objc protocol RWAutoTagViewDataSource:class {
+@objc public protocol RWAutoTagViewDataSource:class {
     /* 🐱 总共有多少个AutoTagButton标签对象 */
     @objc func numberOfAutoTagButton(in autoTageView:RWAutoTagView) -> NSInteger
     /* 🐱 返回AutoTagButton标签对象 */
@@ -30,7 +30,7 @@ import UIKit
 }
 
 /// 协议二：  提供的一些事件时机给 代理对象
-@objc protocol RWAutoTagViewDelegate:NSObjectProtocol {
+@objc public protocol RWAutoTagViewDelegate:NSObjectProtocol {
     /*  RWAutoTagButton 点击事件代理  */
     @objc optional func autoTagView(autoTagView:RWAutoTagView, didSelectAutoTagButtonAtIndex index:NSInteger)
 }
@@ -38,7 +38,7 @@ import UIKit
 
 
 /* 🐱 排列样式  */
-enum RWAutoTagViewLineStyle:NSInteger {
+public enum RWAutoTagViewLineStyle:NSInteger {
     case DynamicSingle = 0
     case DynamicMulti = 1
     case DynamicFixedMulti = 2
@@ -46,13 +46,13 @@ enum RWAutoTagViewLineStyle:NSInteger {
 }
 
 /* 🐱 当前宽度显示的样式  排列样式为 动态显示时候有效 */
-enum RWAutoTagViewFullSafeAreaStyle:NSInteger {
+public enum RWAutoTagViewFullSafeAreaStyle:NSInteger {
     case MaxWidth = 0
     case AutoWidth = 1
 }
 
 
-class RWAutoTagView: UIView,RWAutoTagViewProtocol {
+public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     
     /*  存放RWAutoTagButton的数组  */
     private var buttons:NSMutableArray?
@@ -283,12 +283,12 @@ class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         print("initAttribute")
     }
     
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         self.layoutContentSize()
     }
     
-    override var intrinsicContentSize: CGSize {
+    override public var intrinsicContentSize: CGSize {
         get {return self.layoutContentSize()}
     }
     

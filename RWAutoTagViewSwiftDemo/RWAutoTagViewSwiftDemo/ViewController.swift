@@ -13,12 +13,15 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-         let autoTagView = RWAutoTagView.init(frame: CGRect.init(x: 0, y: 100, width: self.view.bounds.width, height: 300.0))
+        
+         let autoTagView = RWAutoTagView.init()
+        
+        
                 autoTagView.lineStyle = .DynamicFixedEquallyMulti
         //        let autoTagView = RWAutoTagView.init(lineStyle: .DynamicMulti)
                 autoTagView.backgroundColor = UIColor.red
         //        autoTagView.lineSpacing = 20.00
-                autoTagView.dataSource = self as RWAutoTagViewDataSource
+        autoTagView.dataSource = (self as! RWAutoTagViewDataSource)
         //        autoTagView.delegate = self as RWAutoTagViewDelegate
                 self.view.addSubview(autoTagView)
                 

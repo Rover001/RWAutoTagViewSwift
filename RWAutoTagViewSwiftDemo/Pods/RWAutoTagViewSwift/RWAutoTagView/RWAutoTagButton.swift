@@ -10,7 +10,7 @@ import UIKit
 
 
 /* 🐱 按钮样式 */
-enum RWAutoTagButtonStyle:NSInteger {
+public enum RWAutoTagButtonStyle:NSInteger {
     /*  默认 纯文字  */
     case Text = 0
     /*  纯图片  */
@@ -24,7 +24,7 @@ enum RWAutoTagButtonStyle:NSInteger {
 /* 🐱 图片的位置样式
  按钮样式为:.Image或者.Mingle有效
  */
-enum RWAutoTagButtonImageStyle:NSInteger {
+public enum RWAutoTagButtonImageStyle:NSInteger {
     /*  默认   */
     case None = 0
     /*  图片在上面  */
@@ -39,7 +39,7 @@ enum RWAutoTagButtonImageStyle:NSInteger {
     case Center = 5
 }
 
-class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
+public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
     
     private var __autoTagButtonStyle:RWAutoTagButtonStyle = .Text
     var autoTagButtonStyle: RWAutoTagButtonStyle! {
@@ -145,12 +145,12 @@ class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
         }
     }
     
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         self.layoutContentSize()
     }
     
-    override var intrinsicContentSize: CGSize {
+    override public var intrinsicContentSize: CGSize {
         get {return self.layoutContentSize()}
     }
     
