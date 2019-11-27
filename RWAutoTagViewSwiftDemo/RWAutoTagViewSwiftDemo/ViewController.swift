@@ -17,11 +17,12 @@ class ViewController: UIViewController,RWAutoTagViewDataSource,RWAutoTagViewDele
         
         func autoTagView(autoTagView: RWAutoTagView, autoTagButtonForAtIndex index: NSInteger) -> RWAutoTagButton {
             let button:RWAutoTagButton =  RWAutoTagButton.init(type: .custom)
+            
             button.backgroundColor = UIColor.orange
             button.autoTagButtonStyle = .Mingle
             button.imageStyle = .Top
             button.frame = CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 100)
-            button.safeAreaLayoutMaxWidth = 100
+    //        button.safeAreaLayoutMaxWidth = 100
             button.setTitle("只有文字只只jhgfhjgff", for: .normal)
     //        button.setImage(UIImage.init(named: "RWAutoTag"), for: .normal)
     //        button.setImage(RWAutoTagBundle.rw_autotagImage, for: .normal)
@@ -34,7 +35,7 @@ class ViewController: UIViewController,RWAutoTagViewDataSource,RWAutoTagViewDele
         }
         
         func equallyNumberOfAutoTagButton(in autoTagView: RWAutoTagView) -> NSInteger {
-            return 2
+            return 3
         }
         
         func autoTagView(autoTagView: RWAutoTagView, didSelectAutoTagButtonAtIndex index: NSInteger) {
@@ -44,23 +45,23 @@ class ViewController: UIViewController,RWAutoTagViewDataSource,RWAutoTagViewDele
         override func viewDidLoad() {
             super.viewDidLoad()
             
-            let autoTagView = RWAutoTagView.init()
-            autoTagView.lineStyle = .DynamicFixedEquallyMulti
+            var autoTagView = RWAutoTagView.init(frame: CGRect.init(x: 0.0, y: 100.0, width: self.view.bounds.width, height: 300.0))
+//            autoTagView = RWAutoTagView.init(lineStyle: .DynamicSingle)
+//            autoTagView.lineStyle = .DynamicFixedEquallyMulti
     //        let autoTagView = RWAutoTagView.init(lineStyle: .DynamicMulti)
             autoTagView.backgroundColor = UIColor.red
-            autoTagView.lineStyle = .DynamicFixedEquallyMulti
     //        autoTagView.lineSpacing = 20.00
             autoTagView.dataSource = self as RWAutoTagViewDataSource
-    //        autoTagView.delegate = self as RWAutoTagViewDelegate
+            autoTagView.delegate = self as RWAutoTagViewDelegate
             self.view.addSubview(autoTagView)
             
             print(autoTagView.insets as Any,autoTagView.classForCoder)
             autoTagView.insets = UIEdgeInsets.init(top: 10, left: 10, bottom: 10, right: 10)
             print(autoTagView.insets as Any,autoTagView.classForCoder)
             
-            autoTagView.autoTagButtonClickBlock = {(autoTagView,index)->Void in
-                print("autoTagButtonClickBlock",autoTagView,index)
-            }
+//            autoTagView.autoTagButtonClickBlock = {(autoTagView,index)->Void in
+//                print("autoTagButtonClickBlock",autoTagView,index)
+//            }
             
     //        UITableView
         }

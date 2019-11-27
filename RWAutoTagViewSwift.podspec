@@ -1,7 +1,7 @@
 
 Pod::Spec.new do |spec|
   spec.name         = "RWAutoTagViewSwift"
-  spec.version      = "0.0.4"
+  spec.version      = "0.0.5"
   spec.summary      = "自定义标签管理Swift版"
   spec.homepage     = "https://blog.csdn.net/RoverWord/article/details/102827798"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
@@ -14,6 +14,6 @@ Pod::Spec.new do |spec|
   spec.source_files = 'RWAutoTagView/*.{swift}'
   spec.resource     = 'RWAutoTagView/RWAutoTag.bundle'
   spec.frameworks = 'UIKit'
-  spec.social_media_url = 'https://cocoapods.org/pods/RWAutoTagViewSwift'
+  #spec.social_media_url = 'https://cocoapods.org/pods/RWAutoTagViewSwift'
     
 end

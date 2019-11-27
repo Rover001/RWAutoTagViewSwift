@@ -263,17 +263,17 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     
     var autoTagButtonClickBlock:clickBlock!
 
-    required init?(coder: NSCoder) {
+    required public init? (coder: NSCoder) {
         super.init(coder: coder)
         initAttribute()
     }
     
-    override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
         initAttribute()
     }
     
-    convenience init(lineStyle:RWAutoTagViewLineStyle) {
+    convenience public init(lineStyle:RWAutoTagViewLineStyle) {
         self.init()
         self.lineStyle = lineStyle
     }

@@ -5,7 +5,7 @@ target 'RWAutoTagViewSwiftDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-pod 'RWAutoTagViewSwift','~> 0.0.3'
+pod 'RWAutoTagViewSwift','~> 0.0.4'
 pod 'Alamofire'
   # Pods for RWAutoTagViewSwiftDemo
 
