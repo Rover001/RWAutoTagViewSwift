@@ -1,0 +1,6 @@
+framework module RWAutoTagViewSwift {
+  umbrella header "RWAutoTagViewSwift-umbrella.h"
+
+  export *
+  module * { export * }
+}

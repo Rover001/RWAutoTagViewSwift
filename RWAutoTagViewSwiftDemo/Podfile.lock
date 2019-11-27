@@ -1,0 +1,20 @@
+PODS:
+  - Alamofire (4.9.1)
+  - RWAutoTagViewSwift (0.0.2)
+
+DEPENDENCIES:
+  - Alamofire
+  - RWAutoTagViewSwift (~> 0.0.2)
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - RWAutoTagViewSwift
+
+SPEC CHECKSUMS:
+  Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
+  RWAutoTagViewSwift: 2af3969742ab7072b978ed6245b5da1b9f15a212
+
+PODFILE CHECKSUM: 43b7c8dcdfc2420648fbd86a1b6e62a75774ff4c
+
+COCOAPODS: 1.8.0
