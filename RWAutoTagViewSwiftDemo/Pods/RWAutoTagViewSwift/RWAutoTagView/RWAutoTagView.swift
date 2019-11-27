@@ -39,15 +39,44 @@ import UIKit
 
 /* 🐱 排列样式  */
 public enum RWAutoTagViewLineStyle:NSInteger {
+    /* 🐱 动态-单行显示  单个AutoTagButton标签显示一行 */
     case DynamicSingle = 0
+    /* 🐱 动态-多行显示  根据AutoTagButton标签宽度来计算的 */
     case DynamicMulti = 1
+    
+    /* 🐱 宽度不能超过最大显示宽度 */
+    /* 🐱 动态-固定AutoTagButton标签宽度-多行显示
+     属于动态多行显示中特殊的存在，设置AutoTagButton标签固定宽度
+     需实现代理 '@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat'
+    */
     case DynamicFixedMulti = 2
+    /* 🐱 动态-固定平分宽度-多行显示
+    属于RWAutoTagViewLineStyle_Fixed 中特殊的一种  每行中的AutoTagButton标签宽度相等
+    代理'@objc optional func equallyNumberOfAutoTagButton(in autoTagView:RWAutoTagView) -> NSInteger' 返回每行平分标签的数量 可用equallyNumber（可读）获取
+    
+    
+    一、如果实现代理'@objc optional func equallyNumberOfAutoTagButton(in autoTagView:RWAutoTagView) -> NSInteger'
+       那么代理'@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat' 可不实现
+    
+    二、代理'@objc optional func equallyNumberOfAutoTagButton(in autoTagView:RWAutoTagView) -> NSInteger' 没有实现，
+       可实现代理'@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat' 而达到效果
+       那就是每行返回的CGSzie必须宽度相等
+       比如：每行显示3个
+       height：AutoTagButton标签高
+       width ：safeAreaLayoutMaxWidth
+       如果实现代理 '@objc optional func safeAreaLayoutMaxWidth(in autoTagView:RWAutoTagView) -> CGFloat'
+       width:代理返回宽度
+       
+       CGSizeMake(width/3, height) 这样就可以达到效果
+    */
     case DynamicFixedEquallyMulti = 3
 }
 
 /* 🐱 当前宽度显示的样式  排列样式为 动态显示时候有效 */
 public enum RWAutoTagViewFullSafeAreaStyle:NSInteger {
+    /* 默认 根据safeAreaLayoutMaxWidth值为宽度  */
     case MaxWidth = 0
+    /* 自动根据控件布局来计算宽度 但不超过最大显示宽度 */
     case AutoWidth = 1
 }
 
@@ -166,13 +195,13 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     }
     
     /*  刷新数据  */
-    func reloadData() {
-        print("刷新数据")
+    private func reloadData() {
+//        print("刷新数据")
         /*  清除按钮数组  */
         self.buttons?.removeAllObjects()
         /*  清除self.subviews中的RWAutoTagButton对象  */
         for element in self.subviews {
-            print("element is \(element.classForCoder)")
+//            print("element is \(element.classForCoder)")
             if element.isKind(of: RWAutoTagButton.classForCoder()) {
                 element.removeFromSuperview()
             }
@@ -259,9 +288,9 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         }
     }
     
-    typealias clickBlock = (_ autoTagView:RWAutoTagView,_ index:NSInteger) ->Void
+    public typealias clickBlock = (_ autoTagView:RWAutoTagView,_ index:NSInteger) ->Void
     
-    var autoTagButtonClickBlock:clickBlock!
+    public var autoTagButtonClickBlock:clickBlock!
 
     required public init? (coder: NSCoder) {
         super.init(coder: coder)
@@ -500,8 +529,6 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         return CGSize.init(width: intrinsicWidth, height: intrinsicHeight)
     }
     
-    
-    
     /*  根据宽度显示样式 来返回宽度  */
     @discardableResult
     private func initFullSafeAreaWidth(safeAreaWidth:CGFloat) -> CGFloat! {
@@ -517,14 +544,6 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         return fullSafeAreaWidth
     }
     
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
-    }
-    */
-
 }
 
 protocol RWAutoTagViewProtocol {
@@ -594,7 +613,6 @@ extension RWAutoTagView {
             self.frame = frame
         }
     }
-    
     
     open var rw_origin:CGPoint {
         get {return self.frame.origin}

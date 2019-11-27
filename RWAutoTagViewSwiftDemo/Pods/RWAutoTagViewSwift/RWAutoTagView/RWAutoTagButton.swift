@@ -215,10 +215,6 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
         return CGSize.init(width: intrinsicWidth, height: intrinsicHeight)
     }
     
-    
-    
-    
-    
     @discardableResult
     private func reloadAutoButtonSize_Image() -> CGSize {
         /*  计算纯图片按钮 大小   */
@@ -258,7 +254,6 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
         self.titleLabel?.frame = CGRect.init(x: 0, y: 0, width: 0, height: 0)
         return CGSize.init(width: intrinsicWidth, height: intrinsicHeight)
     }
-    
     
     @discardableResult
     private func reloadAutoButtonSzie_Mingle() -> CGSize {
@@ -439,16 +434,12 @@ public class RWAutoTagButton: UIButton,RWAutoTagButtonProtocol {
         return CGSize.init(width: intrinsicWidth, height: intrinsicHeight)
     }
     
-    
-    
-    
     @discardableResult
     private func reloadAutoButtonSize_Custom() -> CGSize {
         /*  计算自定义按钮 大小   */
 //        self.rw_x = 100
         return CGSize.zero
     }
-    
     
     @discardableResult
     private func reloadSafeAreaWidth(safeAreaWidth:CGFloat) -> CGFloat! {
@@ -488,6 +479,7 @@ protocol RWAutoTagButtonProtocol {
 
 
 extension RWAutoTagButton {
+    
     private var rw_x:CGFloat {
         get {return self.frame.origin.x}
         set {
@@ -532,7 +524,6 @@ extension RWAutoTagButton {
             self.frame = frame
         }
     }
-    
     
     open var rw_origin:CGPoint {
         get {return self.frame.origin}

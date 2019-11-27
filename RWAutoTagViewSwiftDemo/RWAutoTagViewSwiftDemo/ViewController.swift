@@ -45,7 +45,7 @@ class ViewController: UIViewController,RWAutoTagViewDataSource,RWAutoTagViewDele
         override func viewDidLoad() {
             super.viewDidLoad()
             
-            var autoTagView = RWAutoTagView.init(frame: CGRect.init(x: 0.0, y: 100.0, width: self.view.bounds.width, height: 300.0))
+            let autoTagView = RWAutoTagView.init(frame: CGRect.init(x: 0.0, y: 100.0, width: self.view.bounds.width, height: 300.0))
 //            autoTagView = RWAutoTagView.init(lineStyle: .DynamicSingle)
 //            autoTagView.lineStyle = .DynamicFixedEquallyMulti
     //        let autoTagView = RWAutoTagView.init(lineStyle: .DynamicMulti)
@@ -59,9 +59,9 @@ class ViewController: UIViewController,RWAutoTagViewDataSource,RWAutoTagViewDele
             autoTagView.insets = UIEdgeInsets.init(top: 10, left: 10, bottom: 10, right: 10)
             print(autoTagView.insets as Any,autoTagView.classForCoder)
             
-//            autoTagView.autoTagButtonClickBlock = {(autoTagView,index)->Void in
-//                print("autoTagButtonClickBlock",autoTagView,index)
-//            }
+            autoTagView.autoTagButtonClickBlock = {(autoTagView,index)->Void in
+                print("autoTagButtonClickBlock",autoTagView,index)
+            }
             
     //        UITableView
         }
