@@ -15,16 +15,49 @@ import UIKit
     @objc func numberOfAutoTagButton(in autoTageView:RWAutoTagView) -> NSInteger
     /* 🐱 返回AutoTagButton标签对象 */
     @objc func autoTagView(autoTagView:RWAutoTagView, autoTagButtonForAtIndex index:NSInteger) -> RWAutoTagButton
-    /*  返回safeAreaLayoutMaxWidth的值  不实现次代理 默认值 UIScreen.main.bounds.width  */
+    /*  返回rw_safeAreaLayoutMaxWidth的值  不实现次代理 默认值 UIScreen.main.bounds.width  */
     @objc optional func safeAreaLayoutMaxWidth(in autoTagView:RWAutoTagView) -> CGFloat
     
-    /* 🐱 默认值
-    width ：safeAreaLayoutMaxWidth
-    如果实现代理 '- (CGFloat)safeAreaLayoutMaxWidthInAutoTagView:(RWAutoTagView *)autoTagView;'
-    width:代理返回宽度
-    宽度不能超过最大显示宽度 */
+    /*
+     rw_RangeStyle = DynamicFixed | DynamicFixedEqually 时候
+     以下代理才会有效 */
+
+    /* 🐱 返回值 固定AutoTagButton标签对象的宽度 高度是动态的UITableViewAutomaticDimension
+     组成的AutoTagButton标签对象的Size为： CGSizeMake(width, UITableViewAutomaticDimension)
+
+     默认值：rw_safeAreaLayoutMaxWidth
+     如果实现代理 '@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat'
+     width:代理返回宽度
+     
+     宽度不能超过最大显示宽度(rw_safeAreaLayoutMaxWidth) */
     @objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat
-    /* 🐱 返回平分标签数量 自动计算宽度 不会使用代理'func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger)'返回值*/
+    
+    /* 🐱 返回值 固定AutoTagButton标签对象的高度 宽度是rw_safeAreaLayoutMaxWidth
+        组成的AutoTagButton标签对象的Size为： CGSizeMake(rw_safeAreaLayoutMaxWidth, height)
+
+        如果实现代理 '@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonHeightForAtIndex index:NSInteger) -> CGFloat'
+        height:代理返回高度
+
+        宽度不能超过最大显示宽度(rw_safeAreaLayoutMaxWidth) */
+    
+    @objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonHeightForAtIndex index:NSInteger) -> CGFloat
+    
+    /* 🐱 返回值  固定AutoTagButton标签对象的Size 这代理的优先级高于单独返回宽高的代理。
+    如果实现了这个代理
+    那么代理'@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat'将失效
+    那么代理'@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonHeightForAtIndex index:NSInteger) -> CGFloat'将失效
+    */
+    @objc optional func autoTagView(autoTagView:RWAutoTagView,autoTagButtonSizeForAtIndex index:NSInteger) -> CGSize
+    
+    /* 🐱 返回平分标签数量 自动计算宽度  这里计算的宽度优先级最高
+    rw_RangeStyle = DynamicFixedEqually
+    如果两个代理没有实现 那么表示高度动态
+    '@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonHeightForAtIndex index:NSInteger) -> CGFloat'
+    '@objc optional func autoTagView(autoTagView:RWAutoTagView,autoTagButtonSizeForAtIndex index:NSInteger) -> CGSize'
+    
+    1.那么代理'@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat'将失效
+    2.实现代理'@objc optional func autoTagView(autoTagView:RWAutoTagView,autoTagButtonSizeForAtIndex index:NSInteger) -> CGSize'只会使用高度，宽度是无效的
+     */
     @objc optional func equallyNumberOfAutoTagButton(in autoTagView:RWAutoTagView) -> NSInteger
     
 }
@@ -72,6 +105,19 @@ public enum RWAutoTagViewLineStyle:NSInteger {
     case DynamicFixedEquallyMulti = 3
 }
 
+public enum RWAutoTagViewRangeStyle:NSInteger {
+    /* 🐱 动态-单行单个显示  单个AutoTagButton标签排列一行
+    AutoTagButton的最大宽度不能超过rw_safeAreaLayoutMaxWidth */
+    case DynamicSingle = 0
+    /* 🐱 动态-单行多个显示  根据AutoTagButton标签宽度来计算的 一行一个或者一行多个  默认*/
+    case DynamicMulti = 1
+    /* 🐱 动态-固定大小显示 */
+    case DynamicFixed = 2
+    /* 🐱 动态-固定大小宽度平分显示  */
+    case DynamicFixedEqually = 3
+    
+}
+
 /* 🐱 当前宽度显示的样式  排列样式为 动态显示时候有效 */
 public enum RWAutoTagViewFullSafeAreaStyle:NSInteger {
     /* 默认 根据safeAreaLayoutMaxWidth值为宽度  */
@@ -99,22 +145,22 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     weak open var delegate:RWAutoTagViewDelegate?
     
     /* 内边距 默认 UIEdgeInsetsMake(0,0,0,0) */
-    private var __insets:UIEdgeInsets = UIEdgeInsets.init()
-    open var insets:UIEdgeInsets! {
-        get {return __insets}
-        set { if (__insets != newValue) {
-                __insets = newValue
+    private var __rw_insets:UIEdgeInsets = UIEdgeInsets.init()
+    open var rw_insets:UIEdgeInsets! {
+        get {return __rw_insets}
+        set { if (__rw_insets != newValue) {
+                __rw_insets = newValue
                 reloadData()
             }
         }
     }
-    /* 行间距 默认 lineSpacing = 10.0f */
-    private var __lineSpacing:CGFloat = 10.0
-    open var lineSpacing:CGFloat! {
-        get { return __lineSpacing}
+    /* 行间距 默认 rw_lineSpacing = 10.0f */
+    private var __rw_lineSpacing:CGFloat = 10.0
+    open var rw_lineSpacing:CGFloat! {
+        get { return __rw_lineSpacing}
         set {
-            if (__lineSpacing != newValue) {
-                __lineSpacing = newValue
+            if (__rw_lineSpacing != newValue) {
+                __rw_lineSpacing = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     self.setNeedsLayout()
                 }
@@ -122,25 +168,25 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         }
     }
     /* 单行时候是否显示行间距  默认 false */
-    private var __showSingleLineSpacing:Bool! = false
-    open var showSingleLineSpacing:Bool! {
-        get {return __showSingleLineSpacing}
+    private var __rw_showSingleLineSpacing:Bool! = false
+    open var rw_showSingleLineSpacing:Bool! {
+        get {return __rw_showSingleLineSpacing}
         set {
-            if (__showSingleLineSpacing != newValue) {
-                __showSingleLineSpacing = newValue
+            if (__rw_showSingleLineSpacing != newValue) {
+                __rw_showSingleLineSpacing = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     self.setNeedsLayout()
                 }
             }
         }
     }
-    /* 行内item间距 默认lineitemSpacing = 10.0f */
-    private var __lineitemSpacing:CGFloat = 10.0
-    open var lineitemSpacing:CGFloat! {
-        get {return __lineitemSpacing}
+    /* 行内item间距 默认rw_itemSpacing = 10.0f */
+    private var __rw_lineitemSpacing:CGFloat = 10.0
+    open var rw_itemSpacing:CGFloat! {
+        get {return __rw_lineitemSpacing}
         set {
-            if (__lineitemSpacing != newValue) {
-                __lineitemSpacing = newValue
+            if (__rw_lineitemSpacing != newValue) {
+                __rw_lineitemSpacing = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     self.setNeedsLayout()
                 }
@@ -148,13 +194,13 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         }
     }
     /* 最大显示宽度
-    默认 safeAreaLayoutMaxWidth = UIScreen.main.bounds.width   */
-    private var __safeAreaLayoutMaxWidth:CGFloat = UIScreen.main.bounds.width
-    open var safeAreaLayoutMaxWidth:CGFloat! {
-        get {return __safeAreaLayoutMaxWidth}
+    默认 rw_safeAreaLayoutMaxWidth = UIScreen.main.bounds.width   */
+    private var __rw_safeAreaLayoutMaxWidth:CGFloat = UIScreen.main.bounds.width
+    open var rw_safeAreaLayoutMaxWidth:CGFloat! {
+        get {return __rw_safeAreaLayoutMaxWidth}
         set {
-            if (__safeAreaLayoutMaxWidth != newValue) {
-                __safeAreaLayoutMaxWidth = newValue
+            if (__rw_safeAreaLayoutMaxWidth != newValue) {
+                __rw_safeAreaLayoutMaxWidth = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     self.setNeedsLayout()
                 }
@@ -162,12 +208,12 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         }
     }
     /* 🐱 当前宽宽显示的样式 默认 fullSafeAreaStyle = .MaxWidth */
-    private var __fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle = .MaxWidth
-    open var fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle! {
-        get {return __fullSafeAreaStyle}
+    private var __rw_fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle = .MaxWidth
+    open var rw_fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle! {
+        get {return __rw_fullSafeAreaStyle}
         set {
-            if (__fullSafeAreaStyle != newValue) {
-                __fullSafeAreaStyle = newValue
+            if (__rw_fullSafeAreaStyle != newValue) {
+                __rw_fullSafeAreaStyle = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     self.setNeedsLayout()
 //                    self.rw_size = [self intrinsicContentSize];
@@ -175,23 +221,24 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
             }
         }
     }
-    /* 🐱 排列样式 默认 lineStyle = .DynamicMulti */
-    private var __lineStyle:RWAutoTagViewLineStyle = .DynamicMulti
-    open var lineStyle:RWAutoTagViewLineStyle! {
-        get {return __lineStyle}
+    /* 🐱 排列样式 默认 rw_rangeStyle = .DynamicMulti */
+    private var __rw_rangeStyle:RWAutoTagViewRangeStyle = .DynamicMulti
+    open var rw_rangeStyle: RWAutoTagViewRangeStyle! {
+        get {return __rw_rangeStyle}
         set {
-            if (__lineStyle != newValue) {
-                __lineStyle = newValue
+            if (__rw_rangeStyle != newValue) {
+                __rw_rangeStyle = newValue
                 if ((buttons != nil) && (buttons?.count ?? 0 > 0)) {
                     reloadData()
                 }
              }
         }
     }
+    
     /* 平分的标签数量 默认0 lineStyle = .DynamicFixedEquallyMulti 值大于0  */
-    private var __equallyNumber:NSInteger = 0
-    public var equallyNumber:NSInteger! {
-        get {return __equallyNumber}
+    private var __rw_equallyNumber:NSInteger = 0
+    public var rw_equallyNumber:NSInteger! {
+        get {return __rw_equallyNumber}
     }
     
     /*  刷新数据  */
@@ -225,48 +272,83 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
             // && (self.dataSource?.autoTagView(autoTagView: self, autoTagButtonForAtIndex:index)) != nil
             if (self.dataSource != nil){
                 let autoTagButton:RWAutoTagButton! = self.dataSource!.autoTagView(autoTagView: self, autoTagButtonForAtIndex:index)
-                autoTagButton.tag = 1000 + index;
+                autoTagButton.rw_isDynamicFixed = false
+                if autoTagButton.tag <= 0 {
+                    autoTagButton.tag = index + 10000
+                }
+                autoTagButton.rw_safeAreaLayoutMaxWidth = self.rw_safeAreaLayoutMaxWidth - self.rw_insets.left - self.rw_insets.right;
                 // && ((self.dataSource?.safeAreaLayoutMaxWidth?(in: self)) != nil)
-                if (self.dataSource != nil) {
-                    var safeAreaLayoutMaxWidth:CGFloat = (self.dataSource?.safeAreaLayoutMaxWidth?(in: self) ?? self.safeAreaLayoutMaxWidth)
-                    if safeAreaLayoutMaxWidth > self.safeAreaLayoutMaxWidth {
-                        safeAreaLayoutMaxWidth = self.safeAreaLayoutMaxWidth
+                if (self.dataSource != nil && (((self.dataSource?.safeAreaLayoutMaxWidth?(in: self)) != nil))) {
+                    var rw_safeAreaLayoutMaxWidth:CGFloat = (self.dataSource?.safeAreaLayoutMaxWidth?(in: self))!
+                    if rw_safeAreaLayoutMaxWidth > self.rw_safeAreaLayoutMaxWidth {
+                        rw_safeAreaLayoutMaxWidth = self.rw_safeAreaLayoutMaxWidth
                     }
-                    autoTagButton.safeAreaLayoutMaxWidth = safeAreaLayoutMaxWidth - self.insets.left - self.insets.right
-                    
+                    autoTagButton.rw_safeAreaLayoutMaxWidth = rw_safeAreaLayoutMaxWidth - self.rw_insets.left - self.rw_insets.right
                 }
                 
-                if self.lineStyle == .DynamicFixedMulti ||
-                self.lineStyle == .DynamicFixedEquallyMulti {
-                    autoTagButton.isDynamicFixed = true;
-                    autoTagButton.dynamicFixedSize = CGSize.init(width: autoTagButton.safeAreaLayoutMaxWidth, height: UITableView.automaticDimension)
-                    
+                if self.rw_rangeStyle == .DynamicFixed ||
+                    self.rw_rangeStyle == .DynamicFixedEqually {
+                    var isFixedEqually:Bool = false
+                    var isFixed:Bool = false
+                    var autoTagButton_Width:CGFloat = autoTagButton.rw_safeAreaLayoutMaxWidth;
+                    var autoTagButton_Height:CGFloat = UITableView.automaticDimension;
+                    autoTagButton.rw_dynamicFixedSize = CGSize.init(width: autoTagButton_Width, height: autoTagButton_Height)
+                    autoTagButton.rw_isDynamicFixed = true;
                     // && ((self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonWidthForAtIndex: index)) != nil)
-                    if (self.dataSource != nil) {
-                        var width:CGFloat = (self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonWidthForAtIndex: index) ?? self.safeAreaLayoutMaxWidth)
-                        if width > autoTagButton.safeAreaLayoutMaxWidth {
-                            width = autoTagButton.safeAreaLayoutMaxWidth
-                        }
-                        autoTagButton.dynamicFixedSize = CGSize.init(width: width, height: UITableView.automaticDimension)
-                    }
                     
-                    if self.lineStyle == .DynamicFixedEquallyMulti {
+                    /*  代理返回宽高  */
+                    if (self.dataSource != nil && ((self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonSizeForAtIndex: index)) != nil)) {
+                        
+                        let newSize:CGSize = (self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonSizeForAtIndex: index))!
+                        autoTagButton_Width = newSize.width
+                        autoTagButton_Height = newSize.height
+                        if autoTagButton_Width > autoTagButton.rw_safeAreaLayoutMaxWidth {
+                            autoTagButton_Width = autoTagButton.rw_safeAreaLayoutMaxWidth
+                        }
+                        isFixed = true
+                        isFixedEqually = true
+                    } else {
+                        /*  代理返回宽度  */
+                        if self.dataSource != nil && ((self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonWidthForAtIndex: index)) != nil) {
+                            autoTagButton_Width = (self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonWidthForAtIndex: index))!
+                            if autoTagButton_Width > autoTagButton.rw_safeAreaLayoutMaxWidth {
+                                autoTagButton_Width = autoTagButton.rw_safeAreaLayoutMaxWidth
+                            }
+                            isFixed = true
+                        }
+                        
+                        /*  代理返回高度  */
+                        if self.dataSource != nil && ((self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonHeightForAtIndex: index)) != nil) {
+                            let height:CGFloat = (self.dataSource?.autoTagView?(autoTagView: self, autoTagButtonHeightForAtIndex: index) ?? UITableView.automaticDimension)
+                            autoTagButton_Height = height
+                            isFixed = true
+                            isFixedEqually = true
+                        }
+                    }
+                    autoTagButton.rw_dynamicFixedSize = CGSize.init(width: autoTagButton_Width, height: autoTagButton_Height)
+                    assert(isFixed == true, "请实现代理🐱\n🐱🐱@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat🐱🐱\n🐱或者🐱\n🐱🐱@objc optional func autoTagView(autoTagView:RWAutoTagView,autoTagButtonSizeForAtIndex index:NSInteger) -> CGSize🐱🐱\n🐱")
+                    
+                    
+                    if self.rw_rangeStyle == .DynamicFixedEqually {
                         //  && ((self.dataSource?.equallyNumberOfAutoTagButton?(in: self)) != nil)
                         if (self.dataSource != nil) {
-                            __equallyNumber = (self.dataSource?.equallyNumberOfAutoTagButton?(in: self) ?? 1)
-                            if __equallyNumber <= 0 {
-                                __equallyNumber = 1;
+                            __rw_equallyNumber = (self.dataSource?.equallyNumberOfAutoTagButton?(in: self) ?? 1)
+                            if __rw_equallyNumber <= 0 {
+                                __rw_equallyNumber = 1;
                             }
-                            print("autoTagButton.safeAreaLayoutMaxWidth:",autoTagButton.safeAreaLayoutMaxWidth!)
+                            isFixedEqually = true
+//                            print("autoTagButton.safeAreaLayoutMaxWidth:",autoTagButton.rw_safeAreaLayoutMaxWidth!)
                             
-                            let width:CGFloat! = (autoTagButton.safeAreaLayoutMaxWidth - (self.lineitemSpacing * CGFloat(__equallyNumber - 1))) / CGFloat(__equallyNumber)
-                            
-                            autoTagButton.dynamicFixedSize = CGSize.init(width: width, height: UITableView.automaticDimension)
+                            autoTagButton_Width = (autoTagButton.rw_safeAreaLayoutMaxWidth - (self.rw_itemSpacing * CGFloat(__rw_equallyNumber - 1))) / CGFloat(__rw_equallyNumber)
+                            autoTagButton.rw_dynamicFixedSize = CGSize.init(width: autoTagButton_Width, height: autoTagButton_Height)
                         }
+                        
+                        assert(isFixedEqually == true, "请实现代理🐱\n🐱🐱@objc optional func autoTagView(autoTagView:RWAutoTagView, autoTagButtonWidthForAtIndex index:NSInteger) -> CGFloat🐱🐱\n🐱或者🐱\n🐱🐱@objc optional func autoTagView(autoTagView:RWAutoTagView,autoTagButtonSizeForAtIndex index:NSInteger) -> CGSize🐱🐱\n🐱")
                     }
                 }
                 
                 autoTagButton.addTarget(self, action: #selector(autoTagButtonClick(autoTagButton:)), for: .touchUpInside)
+                print("autoTagButton:", autoTagButton.intrinsicContentSize.width,autoTagButton.intrinsicContentSize.height)
                 self.addSubview(autoTagButton)
                 self.buttons?.add(autoTagButton as RWAutoTagButton)
             }
@@ -302,9 +384,9 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
         initAttribute()
     }
     
-    convenience public init(lineStyle:RWAutoTagViewLineStyle) {
+    convenience public init(rangeStyle:RWAutoTagViewRangeStyle) {
         self.init()
-        self.lineStyle = lineStyle
+        self.rw_rangeStyle = rangeStyle
     }
     
     private func initAttribute() {
@@ -325,17 +407,17 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     private func layoutContentSize() ->CGSize {
         var newSize:CGSize = CGSize.zero
         
-        switch __lineStyle {
+        switch __rw_rangeStyle {
         case .DynamicSingle:
             newSize = reloadAutoTagViewSzie_DynamicSingle()
             break
         case .DynamicMulti:
             newSize = reloadAutoTagViewSzie_DynamicMulti()
             break
-        case .DynamicFixedMulti:
+        case .DynamicFixed:
             newSize = reloadAutoTagViewSzie_DynamicFixed()
             break
-        case .DynamicFixedEquallyMulti:
+        case .DynamicFixedEqually:
             newSize = reloadAutoTagViewSzie_DynamicFixed()
             break
         }
@@ -351,11 +433,11 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
             return CGSize.zero
         }
         let subviews:[UIView] = self.subviews
-        let lineSpacing:CGFloat = self.lineSpacing
-        let top:CGFloat = self.insets.top
-        let left:CGFloat = self.insets.left
-        let right:CGFloat = self.insets.right
-        let bottom:CGFloat = self.insets.bottom
+        let lineSpacing:CGFloat = self.rw_lineSpacing
+        let top:CGFloat = self.rw_insets.top
+        let left:CGFloat = self.rw_insets.left
+        let right:CGFloat = self.rw_insets.right
+        let bottom:CGFloat = self.rw_insets.bottom
         
         var intrinsicHeight:CGFloat = 0.0
         var intrinsicWidth:CGFloat = left + right
@@ -373,9 +455,9 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
                 var width:CGFloat  = size.width
                 let height:CGFloat  = size.height
                 
-                if ((size.width >= self.safeAreaLayoutMaxWidth) ||
-                    (width + left + right) >= self.safeAreaLayoutMaxWidth) {
-                    width = self.safeAreaLayoutMaxWidth - left - right;
+                if ((size.width >= self.rw_safeAreaLayoutMaxWidth) ||
+                    (width + left + right) >= self.rw_safeAreaLayoutMaxWidth) {
+                    width = self.rw_safeAreaLayoutMaxWidth - left - right;
                     //                intrinsicHeight += height;
                 }
                 
@@ -405,13 +487,13 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
              return CGSize.zero
          }
         let subviews:[UIView] = self.subviews
-        let lineSpacing:CGFloat = self.lineSpacing
-        let lineitemSpacing:CGFloat = self.lineitemSpacing
+        let lineSpacing:CGFloat = self.rw_lineSpacing
+        let itemSpacing:CGFloat = self.rw_itemSpacing
          
-        let top:CGFloat = self.insets.top
-        let left:CGFloat = self.insets.left
-        let right:CGFloat = self.insets.right
-        let bottom:CGFloat = self.insets.bottom
+        let top:CGFloat = self.rw_insets.top
+        let left:CGFloat = self.rw_insets.left
+        let right:CGFloat = self.rw_insets.right
+        let bottom:CGFloat = self.rw_insets.bottom
          
         var intrinsicHeight:CGFloat = top + bottom
         var intrinsicWidth:CGFloat = left + right
@@ -429,17 +511,21 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
                 var width:CGFloat = size.width;
                 let height:CGFloat = size.height;
                 let lineitemMaxWidth:CGFloat = current_X + width + right;
-                 if ((width >= self.safeAreaLayoutMaxWidth) ||
-                     (lineitemMaxWidth >= self.safeAreaLayoutMaxWidth) ||
-                     ((lineitemMaxWidth + lineitemSpacing) >= self.safeAreaLayoutMaxWidth)) {
-                     current_X = left;
+                 if ((width >= self.rw_safeAreaLayoutMaxWidth) ||
+                     (lineitemMaxWidth >= self.rw_safeAreaLayoutMaxWidth) ||
+                     ((lineitemMaxWidth + itemSpacing) >= self.rw_safeAreaLayoutMaxWidth)) {
+                     current_X = left
+                    if index > 0 && index < subviews.count {
+                        current_Y += lineSpacing;
+                        intrinsicHeight += lineSpacing;
+                    }
                      
-                     current_Y += (lineSpacing + lineMaxHeight)
-                     intrinsicHeight += (lineSpacing + lineMaxHeight)
-                     width  = min(width, self.safeAreaLayoutMaxWidth - left - right)
+                     current_Y += lineMaxHeight;
+                     intrinsicHeight += lineMaxHeight;
+                     width  = min(width, self.rw_safeAreaLayoutMaxWidth - left - right)
                     autoTagButton.frame = CGRect.init(x: current_X, y: current_Y, width: width, height: height)
                      lineMaxHeight = height;
-                     current_X += (lineitemSpacing + width)
+                     current_X += (itemSpacing + width)
                      lineMaxWidth = max(lineMaxWidth, current_X)
                      index += 1
                      if (index == subviews.count) {
@@ -450,7 +536,7 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
                      lineMaxHeight = max(height, lineMaxHeight)
                      autoTagButton.frame = CGRect.init(x: current_X, y: current_Y, width: width, height: height)
 //                     [self autoTagButton:autoTagButton frame:CGRectMake(current_X, current_Y, width, height)];
-                     current_X += (lineitemSpacing + width);
+                     current_X += (itemSpacing + width);
                      lineMaxWidth = max(lineMaxWidth, current_X)
                      index += 1
                      if (index == subviews.count) {
@@ -471,13 +557,13 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
              return CGSize.zero
          }
         let subviews:[UIView] = self.subviews
-        let lineSpacing:CGFloat = self.lineSpacing
-        let lineitemSpacing:CGFloat = self.lineitemSpacing
+        let lineSpacing:CGFloat = self.rw_lineSpacing
+        let itemSpacing:CGFloat = self.rw_itemSpacing
         
-        let top:CGFloat = self.insets.top
-        let left:CGFloat = self.insets.left
-        let right:CGFloat = self.insets.right
-        let bottom:CGFloat = self.insets.bottom
+        let top:CGFloat = self.rw_insets.top
+        let left:CGFloat = self.rw_insets.left
+        let right:CGFloat = self.rw_insets.right
+        let bottom:CGFloat = self.rw_insets.bottom
         
         var intrinsicHeight:CGFloat = top + bottom
         var intrinsicWidth:CGFloat = left + right
@@ -496,16 +582,16 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
                 let height:CGFloat = size.height
                 var lineitemMaxWidth:CGFloat  = current_X + width + right
                 lineitemMaxWidth = CGFloat(ceilf(Float(lineitemMaxWidth * 100))/100)
-                if ((width > self.safeAreaLayoutMaxWidth) ||
-                    (lineitemMaxWidth > self.safeAreaLayoutMaxWidth)) {
+                if ((width > self.rw_safeAreaLayoutMaxWidth) ||
+                    (lineitemMaxWidth > self.rw_safeAreaLayoutMaxWidth)) {
                     current_X = left;
                     
                     current_Y += (lineSpacing + lineMaxHeight);
                     intrinsicHeight += (lineSpacing + lineMaxHeight);
-                    width  = min(width, self.safeAreaLayoutMaxWidth - left - right)
+                    width  = min(width, self.rw_safeAreaLayoutMaxWidth - left - right)
                     autoTagButton.frame = CGRect.init(x: current_X, y: current_Y, width: width, height: height)
                     lineMaxHeight = height
-                    current_X += (lineitemSpacing + width)
+                    current_X += (itemSpacing + width)
                     lineMaxWidth = max(lineMaxWidth, current_X)
                     index += 1
                     if (index == subviews.count) {
@@ -515,7 +601,7 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
                 } else {
                     lineMaxHeight = max(height, lineMaxHeight)
                     autoTagButton.frame = CGRect.init(x: current_X, y: current_Y, width: width, height: height)
-                    current_X += (lineitemSpacing + width);
+                    current_X += (itemSpacing + width);
                     lineMaxWidth = max(lineMaxWidth, current_X)
                     index += 1
                     if (index == subviews.count) {
@@ -533,9 +619,9 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
     @discardableResult
     private func initFullSafeAreaWidth(safeAreaWidth:CGFloat) -> CGFloat! {
         var fullSafeAreaWidth:CGFloat! = safeAreaWidth
-        switch __fullSafeAreaStyle {
+        switch __rw_fullSafeAreaStyle {
         case .MaxWidth:
-            fullSafeAreaWidth = self.safeAreaLayoutMaxWidth
+            fullSafeAreaWidth = self.rw_safeAreaLayoutMaxWidth
             break
         case .AutoWidth:
             fullSafeAreaWidth = safeAreaWidth;
@@ -549,22 +635,22 @@ public class RWAutoTagView: UIView,RWAutoTagViewProtocol {
 protocol RWAutoTagViewProtocol {
     
     /* 内边距 默认 UIEdgeInsetsMake(0,0,0,0) */
-    var insets:UIEdgeInsets! {get set}
-    /* 行间距 默认 lineSpacing = 10.0f */
-    var lineSpacing:CGFloat! {get set}
+    var rw_insets:UIEdgeInsets! {get set}
+    /* 行间距 默认 rw_lineSpacing = 10.0f */
+    var rw_lineSpacing:CGFloat! {get set}
     /* 单行时候是否显示行间距  默认 false */
-    var showSingleLineSpacing:Bool! {get set}
-    /* 行内item间距 默认lineitemSpacing = 10.0f */
-    var lineitemSpacing:CGFloat! {get set}
+    var rw_showSingleLineSpacing:Bool! {get set}
+    /* 行内item间距 默认rw_itemSpacing = 10.0f */
+    var rw_itemSpacing:CGFloat! {get set}
     /* 最大显示宽度
-    默认 safeAreaLayoutMaxWidth = UIScreen.main.bounds.width   */
-    var safeAreaLayoutMaxWidth:CGFloat! {get set}
-    /* 🐱 当前宽宽显示的样式 默认 fullSafeAreaStyle = .MaxWidth */
-    var fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle! {get set}
-    /* 🐱 排列样式 默认 lineStyle = .DynamicMulti */
-    var lineStyle:RWAutoTagViewLineStyle! {get set}
-    /* 平分的标签数量 默认0 lineStyle = .DynamicFixedEquallyMulti 值大于0  */
-    var equallyNumber:NSInteger! {get}
+    默认 rw_safeAreaLayoutMaxWidth = UIScreen.main.bounds.width   */
+    var rw_safeAreaLayoutMaxWidth:CGFloat! {get set}
+    /* 🐱 当前宽宽显示的样式 默认 rw_fullSafeAreaStyle = .MaxWidth */
+    var rw_fullSafeAreaStyle:RWAutoTagViewFullSafeAreaStyle! {get set}
+    /* 🐱 排列样式 默认 rw_rangeStyle = .DynamicMulti */
+    var rw_rangeStyle:RWAutoTagViewRangeStyle!{get set}
+    /* 平分的标签数量 默认0 rw_equallyNumber = .DynamicFixedEquallyMulti 值大于0  */
+    var rw_equallyNumber:NSInteger! {get}
 }
 
 
